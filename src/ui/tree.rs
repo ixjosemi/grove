@@ -118,12 +118,12 @@ fn render_help_bar(frame: &mut Frame, app: &App, area: Rect) {
 
     let help_text = match &app.mode {
         AppMode::Normal => {
-            if width >= 95 {
-                "[a]dd [A]dir [r]ename [d]el [y]ank [x]cut [p]aste [/]search [H]idden [R]efresh [?]help [q]uit"
-            } else if width >= 70 {
-                "[a]dd [A]dir [r]en [d]el [y]ank [x] [p]aste [/] [H] [R]efresh [?] [q]"
-            } else if width >= 50 {
-                "a:add A:dir r:ren d:del y/x/p:clip /:search ?:help q:quit"
+            if width >= 110 {
+                "[a]dd [A]dir [r]en [d]el [y]ank [x]cut [p]aste [/]search [E]xpand [W]rap [H]idden [R]efresh [?]help [q]uit"
+            } else if width >= 85 {
+                "[a]dd [A]dir [r]en [d]el [y/x/p]clip [/] [E]xpand [W]rap [H] [R] [?] [q]"
+            } else if width >= 60 {
+                "a:add r:ren d:del y/x/p:clip /:search E/W:all ?:help q:quit"
             } else {
                 "?:help q:quit"
             }
@@ -169,6 +169,8 @@ pub fn render_help_overlay(frame: &mut Frame) {
         Line::from("Other").style(Style::default().add_modifier(Modifier::BOLD)),
         Line::from("  /         Search"),
         Line::from("  H         Toggle hidden files"),
+        Line::from("  E         Expand all directories"),
+        Line::from("  W         Collapse all directories"),
         Line::from("  R         Refresh tree"),
         Line::from("  ?         Show this help"),
         Line::from("  q         Quit"),

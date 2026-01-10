@@ -163,4 +163,26 @@ impl App {
         });
         Ok(())
     }
+
+    pub fn expand_all(&mut self) -> anyhow::Result<()> {
+        for entry in &mut self.entries {
+            if entry.is_dir() {
+                entry.is_expanded = true;
+            }
+        }
+        self.refresh()?;
+        self.set_status("Expanded all directories");
+        Ok(())
+    }
+
+    pub fn collapse_all(&mut self) -> anyhow::Result<()> {
+        for entry in &mut self.entries {
+            if entry.is_dir() {
+                entry.is_expanded = false;
+            }
+        }
+        self.refresh()?;
+        self.set_status("Collapsed all directories");
+        Ok(())
+    }
 }

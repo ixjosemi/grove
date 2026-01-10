@@ -105,6 +105,8 @@ fn handle_normal_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
             app.refresh()?;
             app.set_status("Refreshed");
         }
+        KeyCode::Char('E') => app.expand_all()?,
+        KeyCode::Char('W') => app.collapse_all()?,
         KeyCode::Char('/') => {
             app.mode = app::AppMode::Search;
             app.search_query.clear();
