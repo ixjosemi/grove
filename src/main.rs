@@ -7,7 +7,7 @@ use app::App;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, Clear, ClearType},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{env, io};
@@ -57,6 +57,11 @@ fn run_app(
             }
         }
 
+        // Handle pending editor file open
+        if let Some(path) = app.pending_editor_file.take() {
+            open_in_editor(terminal, &path)?;
+        }
+
         if app.should_quit {
             break;
         }
@@ -88,7 +93,8 @@ fn handle_normal_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
                 if entry.is_dir() {
                     app.toggle_expand()?;
                 } else {
-                    open_in_editor(app)?;
+                    // Queue file for opening - handled in main loop
+                    app.pending_editor_file = Some(entry.path.clone());
                 }
             }
         }
@@ -366,37 +372,40 @@ fn copy_dir_recursive(src: &std::path::Path, dst: &std::path::Path) -> anyhow::R
     Ok(())
 }
 
-fn open_in_editor(app: &mut App) -> anyhow::Result<()> {
-    if let Some(entry) = app.current_entry() {
-        if !entry.is_dir() {
-            let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vim".to_string());
-            let path = entry.path.clone();
+fn open_in_editor(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    path: &std::path::Path,
+) -> anyhow::Result<()> {
+    let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vim".to_string());
 
-            disable_raw_mode()?;
-            execute!(
-                std::io::stdout(),
-                LeaveAlternateScreen,
-                DisableMouseCapture
-            )?;
+    // Leave TUI mode
+    disable_raw_mode()?;
+    execute!(
+        io::stdout(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
 
-            std::process::Command::new(&editor)
-                .arg(&path)
-                .status()?;
+    // Run editor
+    std::process::Command::new(&editor)
+        .arg(path)
+        .status()?;
 
-            // Restore terminal
-            enable_raw_mode()?;
-            execute!(
-                std::io::stdout(),
-                EnterAlternateScreen,
-                EnableMouseCapture,
-                Clear(ClearType::All)
-            )?;
+    // Restore TUI mode
+    enable_raw_mode()?;
+    execute!(
+        io::stdout(),
+        EnterAlternateScreen,
+        EnableMouseCapture
+    )?;
 
-            // Drain any pending input events from the editor
-            while event::poll(std::time::Duration::from_millis(10))? {
-                let _ = event::read()?;
-            }
-        }
+    // Drain any pending input events
+    while event::poll(std::time::Duration::from_millis(50))? {
+        let _ = event::read()?;
     }
+
+    // Force full terminal refresh
+    terminal.clear()?;
+
     Ok(())
 }

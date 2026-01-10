@@ -43,6 +43,7 @@ pub struct App {
     pub clipboard: Option<ClipboardEntry>,
     pub status_message: Option<(String, std::time::Instant)>,
     pub should_quit: bool,
+    pub pending_editor_file: Option<PathBuf>,
 }
 
 impl App {
@@ -60,6 +61,7 @@ impl App {
             clipboard: None,
             status_message: None,
             should_quit: false,
+            pending_editor_file: None,
         }
     }
 
