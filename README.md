@@ -1,5 +1,9 @@
 # filetree
 
+<p align="center">
+  <img src="assets/header.png" alt="filetree header" width="100%">
+</p>
+
 A fast, minimal terminal file explorer with Vim-style navigation and Nerd Font icons.
 
 ![Rust](https://img.shields.io/badge/rust-1.70%2B-orange)
