@@ -252,8 +252,7 @@ fn handle_mouse(app: &mut App, kind: MouseEventKind, row: u16, _column: u16) -> 
         return Ok(());
     }
 
-    // Tree area starts at row 1 (after border) and ends 3 rows before bottom (status + help + border)
-    // Row 0 is the top border, so clickable area starts at row 1
+    // Tree area starts at row 1 (after border)
     let tree_start_row: u16 = 1;
 
     match kind {
@@ -261,7 +260,27 @@ fn handle_mouse(app: &mut App, kind: MouseEventKind, row: u16, _column: u16) -> 
             if row >= tree_start_row {
                 let clicked_index = (row - tree_start_row) as usize;
                 if clicked_index < app.entries.len() {
+                    // Check for double click
+                    let now = std::time::Instant::now();
+                    let is_double_click = if let Some((last_time, last_index)) = app.last_click {
+                        last_index == clicked_index && now.duration_since(last_time).as_millis() < 400
+                    } else {
+                        false
+                    };
+
                     app.cursor = clicked_index;
+
+                    if is_double_click {
+                        // Double click: toggle directory
+                        if let Some(entry) = app.current_entry() {
+                            if entry.is_dir() {
+                                app.toggle_expand()?;
+                            }
+                        }
+                        app.last_click = None;
+                    } else {
+                        app.last_click = Some((now, clicked_index));
+                    }
                 }
             }
         }

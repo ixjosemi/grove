@@ -44,6 +44,7 @@ pub struct App {
     pub status_message: Option<(String, std::time::Instant)>,
     pub should_quit: bool,
     pub pending_editor_file: Option<PathBuf>,
+    pub last_click: Option<(std::time::Instant, usize)>,
 }
 
 impl App {
@@ -62,6 +63,7 @@ impl App {
             status_message: None,
             should_quit: false,
             pending_editor_file: None,
+            last_click: None,
         }
     }
 

@@ -93,6 +93,7 @@ ft /etc
 | Action | Effect |
 |--------|--------|
 | Left click | Select item |
+| Double click | Toggle directory expand/collapse |
 | Right click | Open file / toggle directory |
 | Scroll | Navigate up/down |
 
