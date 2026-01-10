@@ -5,7 +5,7 @@ mod ui;
 
 use app::App;
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers, MouseEventKind, MouseButton},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -52,8 +52,14 @@ fn run_app(
         terminal.draw(|f| ui::draw(f, app))?;
 
         if event::poll(std::time::Duration::from_millis(100))? {
-            if let Event::Key(key) = event::read()? {
-                handle_key(app, key.code, key.modifiers)?;
+            match event::read()? {
+                Event::Key(key) => {
+                    handle_key(app, key.code, key.modifiers)?;
+                }
+                Event::Mouse(mouse) => {
+                    handle_mouse(app, mouse.kind, mouse.row, mouse.column)?;
+                }
+                _ => {}
             }
         }
 
@@ -237,6 +243,57 @@ fn handle_help_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
         }
         _ => {}
     }
+    Ok(())
+}
+
+fn handle_mouse(app: &mut App, kind: MouseEventKind, row: u16, _column: u16) -> anyhow::Result<()> {
+    // Only handle mouse in Normal mode
+    if !matches!(app.mode, app::AppMode::Normal) {
+        return Ok(());
+    }
+
+    // Tree area starts at row 1 (after border) and ends 3 rows before bottom (status + help + border)
+    // Row 0 is the top border, so clickable area starts at row 1
+    let tree_start_row: u16 = 1;
+
+    match kind {
+        MouseEventKind::Down(MouseButton::Left) => {
+            if row >= tree_start_row {
+                let clicked_index = (row - tree_start_row) as usize;
+                if clicked_index < app.entries.len() {
+                    app.cursor = clicked_index;
+                }
+            }
+        }
+        MouseEventKind::Down(MouseButton::Right) => {
+            if row >= tree_start_row {
+                let clicked_index = (row - tree_start_row) as usize;
+                if clicked_index < app.entries.len() {
+                    app.cursor = clicked_index;
+                    // Open file or toggle directory
+                    if let Some(entry) = app.current_entry() {
+                        if entry.is_dir() {
+                            app.toggle_expand()?;
+                        } else {
+                            app.pending_editor_file = Some(entry.path.clone());
+                        }
+                    }
+                }
+            }
+        }
+        MouseEventKind::ScrollUp => {
+            for _ in 0..3 {
+                app.move_cursor_up();
+            }
+        }
+        MouseEventKind::ScrollDown => {
+            for _ in 0..3 {
+                app.move_cursor_down();
+            }
+        }
+        _ => {}
+    }
+
     Ok(())
 }
 

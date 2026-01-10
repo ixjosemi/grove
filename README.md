@@ -82,9 +82,19 @@ ft /etc
 | `/` | Search |
 | `n` / `N` | Next / previous search result |
 | `H` | Toggle hidden files |
+| `E` | Expand all directories |
+| `W` | Collapse all directories |
 | `R` | Refresh tree |
 | `?` | Show help |
 | `q` | Quit |
+
+### Mouse
+
+| Action | Effect |
+|--------|--------|
+| Left click | Select item |
+| Right click | Open file / toggle directory |
+| Scroll | Navigate up/down |
 
 ## Configuration
 

@@ -32,7 +32,11 @@ src/
 loop {
     terminal.draw(|f| ui::draw(f, app))?;
     if event::poll(...)? {
-        handle_key(app, key)?;
+        match event::read()? {
+            Event::Key(key) => handle_key(app, key)?,
+            Event::Mouse(mouse) => handle_mouse(app, mouse)?,
+            _ => {}
+        }
     }
     if let Some(path) = app.pending_editor_file.take() {
         open_in_editor(terminal, &path)?;
@@ -67,6 +71,12 @@ cargo run --release      # Run release
 1. Add handler in `handle_normal_mode()` in `main.rs`
 2. Update help text in `render_help_bar()` in `ui/tree.rs`
 3. Update help overlay in `render_help_overlay()` in `ui/tree.rs`
+4. Update keybindings section in `README.md`
+
+### Adding mouse functionality
+1. Add handler in `handle_mouse()` in `main.rs`
+2. Update Mouse section in help overlay in `ui/tree.rs`
+3. Update Mouse section in `README.md`
 
 ### Adding a new file type icon
 1. Add entry in `ICONS` HashMap in `icons.rs`

@@ -175,6 +175,11 @@ pub fn render_help_overlay(frame: &mut Frame) {
         Line::from("  ?         Show this help"),
         Line::from("  q         Quit"),
         Line::from(""),
+        Line::from("Mouse").style(Style::default().add_modifier(Modifier::BOLD)),
+        Line::from("  Left click   Select item"),
+        Line::from("  Right click  Open file / toggle dir"),
+        Line::from("  Scroll       Navigate up/down"),
+        Line::from(""),
         Line::from("Press Esc or ? to close").style(Style::default().fg(Color::DarkGray)),
     ];
 
