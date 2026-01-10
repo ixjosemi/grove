@@ -115,7 +115,7 @@ fn render_input_or_status(frame: &mut Frame, app: &App, area: Rect) {
 
 fn render_help_bar(frame: &mut Frame, app: &App, area: Rect) {
     let help_text = match &app.mode {
-        AppMode::Normal => "[a]dd [A]dd dir [r]ename [d]elete [y]ank [x]cut [p]aste [/]search [H]idden [?]help [q]uit",
+        AppMode::Normal => "[a]dd [A]dir [r]ename [d]el [y]ank [x]cut [p]aste [/]search [H]idden [R]efresh [?]help [q]uit",
         AppMode::Search => "[Enter]confirm [n]ext [N]prev [Esc]cancel",
         AppMode::Input(_) => "[Enter]confirm [Esc]cancel",
         AppMode::Confirm(_) => "[y]es [n]o",
@@ -151,6 +151,7 @@ pub fn render_help_overlay(frame: &mut Frame) {
         Line::from("Other").style(Style::default().add_modifier(Modifier::BOLD)),
         Line::from("  /         Search"),
         Line::from("  H         Toggle hidden files"),
+        Line::from("  R         Refresh tree"),
         Line::from("  ?         Show this help"),
         Line::from("  q         Quit"),
         Line::from(""),

@@ -101,6 +101,10 @@ fn handle_normal_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
         KeyCode::Char('g') => app.go_to_top(),
         KeyCode::Char('G') => app.go_to_bottom(),
         KeyCode::Char('H') => app.toggle_hidden()?,
+        KeyCode::Char('R') => {
+            app.refresh()?;
+            app.set_status("Refreshed");
+        }
         KeyCode::Char('/') => {
             app.mode = app::AppMode::Search;
             app.search_query.clear();
