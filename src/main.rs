@@ -1,3 +1,5 @@
+mod fs;
+
 fn main() {
-    println!("Hello, world!");
+    println!("FileTree TUI");
 }
