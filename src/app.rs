@@ -97,4 +97,67 @@ impl App {
     pub fn go_to_bottom(&mut self) {
         self.cursor = self.entries.len().saturating_sub(1);
     }
+
+    pub fn get_expanded_paths(&self) -> Vec<PathBuf> {
+        self.entries
+            .iter()
+            .filter(|e| e.is_expanded)
+            .map(|e| e.path.clone())
+            .collect()
+    }
+
+    pub fn refresh(&mut self) -> anyhow::Result<()> {
+        let expanded = self.get_expanded_paths();
+        self.entries = crate::fs::build_tree(&self.root_path, &expanded, self.show_hidden)?;
+
+        // Ensure cursor is within bounds
+        if self.cursor >= self.entries.len() {
+            self.cursor = self.entries.len().saturating_sub(1);
+        }
+
+        Ok(())
+    }
+
+    pub fn toggle_expand(&mut self) -> anyhow::Result<()> {
+        if let Some(entry) = self.entries.get_mut(self.cursor) {
+            if entry.is_dir() {
+                entry.is_expanded = !entry.is_expanded;
+                self.refresh()?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn collapse_or_parent(&mut self) -> anyhow::Result<()> {
+        if let Some(entry) = self.entries.get(self.cursor) {
+            if entry.is_dir() && entry.is_expanded {
+                // Collapse current directory
+                if let Some(e) = self.entries.get_mut(self.cursor) {
+                    e.is_expanded = false;
+                }
+                self.refresh()?;
+            } else if entry.depth > 0 {
+                // Go to parent directory
+                let current_depth = entry.depth;
+                for i in (0..self.cursor).rev() {
+                    if self.entries[i].is_dir() && self.entries[i].depth < current_depth {
+                        self.cursor = i;
+                        break;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn toggle_hidden(&mut self) -> anyhow::Result<()> {
+        self.show_hidden = !self.show_hidden;
+        self.refresh()?;
+        self.set_status(if self.show_hidden {
+            "Showing hidden files"
+        } else {
+            "Hiding hidden files"
+        });
+        Ok(())
+    }
 }
