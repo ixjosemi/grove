@@ -20,6 +20,7 @@ pub enum InputKind {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ConfirmKind {
     Delete,
+    #[allow(dead_code)]
     Overwrite,
 }
 
