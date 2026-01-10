@@ -114,9 +114,27 @@ fn render_input_or_status(frame: &mut Frame, app: &App, area: Rect) {
 }
 
 fn render_help_bar(frame: &mut Frame, app: &App, area: Rect) {
+    let width = area.width as usize;
+
     let help_text = match &app.mode {
-        AppMode::Normal => "[a]dd [A]dir [r]ename [d]el [y]ank [x]cut [p]aste [/]search [H]idden [R]efresh [?]help [q]uit",
-        AppMode::Search => "[Enter]confirm [n]ext [N]prev [Esc]cancel",
+        AppMode::Normal => {
+            if width >= 95 {
+                "[a]dd [A]dir [r]ename [d]el [y]ank [x]cut [p]aste [/]search [H]idden [R]efresh [?]help [q]uit"
+            } else if width >= 70 {
+                "[a]dd [A]dir [r]en [d]el [y]ank [x] [p]aste [/] [H] [R]efresh [?] [q]"
+            } else if width >= 50 {
+                "a:add A:dir r:ren d:del y/x/p:clip /:search ?:help q:quit"
+            } else {
+                "?:help q:quit"
+            }
+        }
+        AppMode::Search => {
+            if width >= 50 {
+                "[Enter]confirm [n]ext [N]prev [Esc]cancel"
+            } else {
+                "Enter:ok n/N:nav Esc:cancel"
+            }
+        }
         AppMode::Input(_) => "[Enter]confirm [Esc]cancel",
         AppMode::Confirm(_) => "[y]es [n]o",
         AppMode::Help => "[Esc]close [q]uit",
