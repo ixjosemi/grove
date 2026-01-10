@@ -21,6 +21,10 @@ pub fn render(frame: &mut Frame, app: &App) {
     render_tree(frame, app, chunks[0]);
     render_input_or_status(frame, app, chunks[1]);
     render_help_bar(frame, app, chunks[2]);
+
+    if matches!(app.mode, AppMode::Help) {
+        render_help_overlay(frame);
+    }
 }
 
 fn render_tree(frame: &mut Frame, app: &App, area: Rect) {
@@ -121,4 +125,62 @@ fn render_help_bar(frame: &mut Frame, app: &App, area: Rect) {
     let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));
 
     frame.render_widget(paragraph, area);
+}
+
+pub fn render_help_overlay(frame: &mut Frame) {
+    let area = centered_rect(60, 80, frame.area());
+
+    let help_text = vec![
+        Line::from("Navigation").style(Style::default().add_modifier(Modifier::BOLD)),
+        Line::from("  j/↓       Move down"),
+        Line::from("  k/↑       Move up"),
+        Line::from("  h/←       Collapse / go to parent"),
+        Line::from("  l/→/Enter Expand / open file"),
+        Line::from("  g         Go to top"),
+        Line::from("  G         Go to bottom"),
+        Line::from(""),
+        Line::from("File Operations").style(Style::default().add_modifier(Modifier::BOLD)),
+        Line::from("  a         Create file"),
+        Line::from("  A         Create directory"),
+        Line::from("  r         Rename"),
+        Line::from("  d         Delete"),
+        Line::from("  y         Copy (yank)"),
+        Line::from("  x         Cut"),
+        Line::from("  p         Paste"),
+        Line::from(""),
+        Line::from("Other").style(Style::default().add_modifier(Modifier::BOLD)),
+        Line::from("  /         Search"),
+        Line::from("  H         Toggle hidden files"),
+        Line::from("  ?         Show this help"),
+        Line::from("  q         Quit"),
+        Line::from(""),
+        Line::from("Press Esc or ? to close").style(Style::default().fg(Color::DarkGray)),
+    ];
+
+    let paragraph = Paragraph::new(help_text)
+        .block(Block::default().borders(Borders::ALL).title(" Help "))
+        .style(Style::default());
+
+    frame.render_widget(ratatui::widgets::Clear, area);
+    frame.render_widget(paragraph, area);
+}
+
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
 }
