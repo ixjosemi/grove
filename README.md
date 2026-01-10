@@ -114,7 +114,3 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
-
-## Acknowledgments
-
-Inspired by [nyanko3141592/filetree](https://github.com/nyanko3141592/filetree) and VSCode's file explorer.
