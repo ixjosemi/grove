@@ -7,7 +7,7 @@ use app::App;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, Clear, ClearType},
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{env, io};
@@ -383,12 +383,19 @@ fn open_in_editor(app: &mut App) -> anyhow::Result<()> {
                 .arg(&path)
                 .status()?;
 
+            // Restore terminal
             enable_raw_mode()?;
             execute!(
                 std::io::stdout(),
                 EnterAlternateScreen,
-                EnableMouseCapture
+                EnableMouseCapture,
+                Clear(ClearType::All)
             )?;
+
+            // Drain any pending input events from the editor
+            while event::poll(std::time::Duration::from_millis(10))? {
+                let _ = event::read()?;
+            }
         }
     }
     Ok(())
