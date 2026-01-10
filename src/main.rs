@@ -113,6 +113,7 @@ fn handle_normal_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
         }
         KeyCode::Char('E') => app.expand_all()?,
         KeyCode::Char('W') => app.collapse_all()?,
+        KeyCode::Char('O') => open_in_file_manager(app)?,
         KeyCode::Char('/') => {
             app.mode = app::AppMode::Search;
             app.search_query.clear();
@@ -193,15 +194,32 @@ fn handle_input_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
         }
         KeyCode::Enter => {
             let input = app.input_buffer.clone();
-            if !input.is_empty() {
-                match &app.mode {
-                    app::AppMode::Input(kind) => match kind {
-                        app::InputKind::CreateFile => create_file(app, &input)?,
-                        app::InputKind::CreateDir => create_dir(app, &input)?,
-                        app::InputKind::Rename => rename_entry(app, &input)?,
-                    },
-                    _ => {}
-                }
+            match &app.mode {
+                app::AppMode::Input(kind) => match kind {
+                    app::InputKind::CreateFile => {
+                        if !input.is_empty() {
+                            create_file(app, &input)?;
+                        }
+                    }
+                    app::InputKind::CreateDir => {
+                        if !input.is_empty() {
+                            create_dir(app, &input)?;
+                        }
+                    }
+                    app::InputKind::Rename => {
+                        if !input.is_empty() {
+                            rename_entry(app, &input)?;
+                        }
+                    }
+                    app::InputKind::ConfirmDelete => {
+                        if input == "yes" {
+                            delete_entry(app)?;
+                        } else {
+                            app.set_status("Delete cancelled");
+                        }
+                    }
+                },
+                _ => {}
             }
             app.mode = app::AppMode::Normal;
             app.input_buffer.clear();
@@ -222,7 +240,12 @@ fn handle_confirm_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
         KeyCode::Char('y') | KeyCode::Char('Y') => {
             if let app::AppMode::Confirm(kind) = &app.mode {
                 match kind {
-                    app::ConfirmKind::Delete => delete_entry(app)?,
+                    app::ConfirmKind::Delete => {
+                        // Second confirmation: require typing "yes"
+                        app.input_buffer.clear();
+                        app.mode = app::AppMode::Input(app::InputKind::ConfirmDelete);
+                        return Ok(());
+                    }
                     app::ConfirmKind::Overwrite => {}
                 }
             }
@@ -488,6 +511,44 @@ fn open_in_editor(
 
     // Force full terminal refresh
     terminal.clear()?;
+
+    Ok(())
+}
+
+fn open_in_file_manager(app: &mut App) -> anyhow::Result<()> {
+    let path = if let Some(entry) = app.current_entry() {
+        if entry.is_dir() {
+            entry.path.clone()
+        } else {
+            entry.path.parent().unwrap_or(&app.root_path).to_path_buf()
+        }
+    } else {
+        app.root_path.clone()
+    };
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&path)
+            .spawn()?;
+        app.set_status(format!("Opened in Finder: {}", path.display()));
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&path)
+            .spawn()?;
+        app.set_status(format!("Opened in file manager: {}", path.display()));
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&path)
+            .spawn()?;
+        app.set_status(format!("Opened in Explorer: {}", path.display()));
+    }
 
     Ok(())
 }

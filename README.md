@@ -74,6 +74,7 @@ ft /etc
 | `y` | Copy (yank) |
 | `x` | Cut |
 | `p` | Paste |
+| `O` | Open in system file manager |
 
 ### Other
 

@@ -15,6 +15,7 @@ pub enum InputKind {
     CreateFile,
     CreateDir,
     Rename,
+    ConfirmDelete,
 }
 
 #[derive(Debug, Clone, PartialEq)]

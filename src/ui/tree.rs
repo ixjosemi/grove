@@ -77,13 +77,14 @@ fn render_tree(frame: &mut Frame, app: &App, area: Rect) {
 fn render_input_or_status(frame: &mut Frame, app: &App, area: Rect) {
     let widget = match &app.mode {
         AppMode::Input(kind) => {
-            let label = match kind {
-                crate::app::InputKind::CreateFile => "New file: ",
-                crate::app::InputKind::CreateDir => "New directory: ",
-                crate::app::InputKind::Rename => "Rename: ",
+            let (label, color) = match kind {
+                crate::app::InputKind::CreateFile => ("New file: ", Color::Yellow),
+                crate::app::InputKind::CreateDir => ("New directory: ", Color::Yellow),
+                crate::app::InputKind::Rename => ("Rename: ", Color::Yellow),
+                crate::app::InputKind::ConfirmDelete => ("Type 'yes' to confirm delete: ", Color::Red),
             };
             Paragraph::new(format!("{}{}", label, app.input_buffer))
-                .style(Style::default().fg(Color::Yellow))
+                .style(Style::default().fg(color))
         }
         AppMode::Search => {
             let count = app.search_results.len();
@@ -118,12 +119,12 @@ fn render_help_bar(frame: &mut Frame, app: &App, area: Rect) {
 
     let help_text = match &app.mode {
         AppMode::Normal => {
-            if width >= 110 {
-                "[a]dd [A]dir [r]en [d]el [y]ank [x]cut [p]aste [/]search [E]xpand [W]rap [H]idden [R]efresh [?]help [q]uit"
-            } else if width >= 85 {
-                "[a]dd [A]dir [r]en [d]el [y/x/p]clip [/] [E]xpand [W]rap [H] [R] [?] [q]"
+            if width >= 120 {
+                "[a]dd [A]dir [r]en [d]el [y]ank [x]cut [p]aste [O]pen [/]search [E]xpand [W]rap [H]idden [R]efresh [?]help [q]uit"
+            } else if width >= 95 {
+                "[a]dd [A]dir [r]en [d]el [y/x/p]clip [O]pen [/] [E]xpand [W]rap [H] [R] [?] [q]"
             } else if width >= 60 {
-                "a:add r:ren d:del y/x/p:clip /:search E/W:all ?:help q:quit"
+                "a:add r:ren d:del y/x/p:clip O:open /:search E/W:all ?:help q:quit"
             } else {
                 "?:help q:quit"
             }
@@ -165,6 +166,7 @@ pub fn render_help_overlay(frame: &mut Frame) {
         Line::from("  y         Copy (yank)"),
         Line::from("  x         Cut"),
         Line::from("  p         Paste"),
+        Line::from("  O         Open in file manager"),
         Line::from(""),
         Line::from("Other").style(Style::default().add_modifier(Modifier::BOLD)),
         Line::from("  /         Search"),
