@@ -259,11 +259,19 @@ impl App {
     pub fn generate_current_preview(&mut self) {
         if let Some(entry) = self.current_entry() {
             let path = entry.path.clone();
-            if !self.preview_cache.contains_key(&path) {
-                if let Ok(preview) = crate::preview::generate_preview(&path) {
-                    self.preview_cache.insert(path, preview);
-                }
-            }
+            self.preview_cache.entry(path.clone()).or_insert_with(|| {
+                crate::preview::generate_preview(&path).unwrap_or_else(|_| {
+                    crate::preview::PreviewData {
+                        path: path.clone(),
+                        content: crate::preview::PreviewContent::Error("Failed to load".into()),
+                        metadata: crate::preview::PreviewMetadata {
+                            size: 0,
+                            modified: None,
+                            permissions: 0,
+                        },
+                    }
+                })
+            });
         }
     }
 

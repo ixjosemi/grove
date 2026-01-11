@@ -1,7 +1,7 @@
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::time::{Instant, SystemTime};
+use std::time::SystemTime;
 
 const MAX_PREVIEW_LINES: usize = 25;
 const MAX_PREVIEW_SIZE: u64 = 50 * 1024; // 50KB
@@ -12,7 +12,6 @@ pub struct PreviewData {
     pub path: PathBuf,
     pub content: PreviewContent,
     pub metadata: PreviewMetadata,
-    pub cached_at: Instant,
 }
 
 #[derive(Debug, Clone)]
@@ -56,7 +55,6 @@ pub fn generate_preview(path: &Path) -> anyhow::Result<PreviewData> {
         path: path.to_path_buf(),
         content,
         metadata: preview_metadata,
-        cached_at: Instant::now(),
     })
 }
 

@@ -228,8 +228,8 @@ fn handle_input_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
         }
         KeyCode::Enter => {
             let input = app.input_buffer.clone();
-            match &app.mode {
-                app::AppMode::Input(kind) => match kind {
+            if let app::AppMode::Input(kind) = &app.mode {
+                match kind {
                     app::InputKind::CreateFile => {
                         if !input.is_empty() {
                             create_file(app, &input)?;
@@ -252,8 +252,7 @@ fn handle_input_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
                             app.set_status("Delete cancelled");
                         }
                     }
-                },
-                _ => {}
+                }
             }
             app.mode = app::AppMode::Normal;
             app.input_buffer.clear();
