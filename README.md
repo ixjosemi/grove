@@ -14,6 +14,8 @@ A fast, minimal terminal file explorer with Vim-style navigation and Nerd Font i
 
 - **Vim-style navigation** - `hjkl` keys, `g`/`G` for top/bottom
 - **File operations** - create, rename, delete, copy, cut, paste
+- **Smart preview** - preview files and directories with `Space`
+- **Live file monitoring** - see changes in real-time with visual indicators
 - **Search** - incremental search with `/`, navigate with `n`/`N`
 - **Nerd Font icons** - beautiful file type icons (requires [Nerd Font](https://www.nerdfonts.com/))
 - **Responsive UI** - adapts to terminal size
@@ -22,16 +24,28 @@ A fast, minimal terminal file explorer with Vim-style navigation and Nerd Font i
 
 ## Installation
 
+### From crates.io (recommended)
+
+```bash
+cargo install grove-tui
+```
+
 ### From source
 
 ```bash
-# Clone the repository
 git clone https://github.com/ixjosemi/grove.git
 cd grove
+cargo install --path .
+```
 
-# Build and install
-cargo build --release
-cp target/release/grove ~/.local/bin/grove
+### For development
+
+```bash
+# Install locally (adds to ~/.cargo/bin/)
+cargo install --path .
+
+# Or run directly without installing
+cargo run --release
 ```
 
 ### Requirements
@@ -75,6 +89,14 @@ grove /etc
 | `x` | Cut |
 | `p` | Paste |
 | `O` | Open in system file manager |
+
+### Preview
+
+| Key | Action |
+|-----|--------|
+| `Space` | Toggle preview |
+| `PgUp` / `PgDn` | Scroll preview |
+| `Esc` | Close preview |
 
 ### Other
 

@@ -69,3 +69,48 @@ pub fn build_tree(
     recurse(root, 0, expanded_paths, show_hidden, &mut entries)?;
     Ok(entries)
 }
+
+const MAX_EXPAND_ALL_ENTRIES: usize = 5000;
+
+pub fn build_tree_fully_expanded(
+    root: &Path,
+    show_hidden: bool,
+) -> anyhow::Result<Vec<FileEntry>> {
+    fn recurse(
+        path: &Path,
+        depth: usize,
+        show_hidden: bool,
+        entries: &mut Vec<FileEntry>,
+    ) -> anyhow::Result<()> {
+        if entries.len() >= MAX_EXPAND_ALL_ENTRIES {
+            return Ok(());
+        }
+
+        let children = load_directory(path, depth, show_hidden)?;
+
+        for mut child in children {
+            if entries.len() >= MAX_EXPAND_ALL_ENTRIES {
+                break;
+            }
+
+            let is_dir = child.is_dir();
+            let child_path = child.path.clone();
+
+            if is_dir {
+                child.is_expanded = true;
+            }
+
+            entries.push(child);
+
+            if is_dir {
+                recurse(&child_path, depth + 1, show_hidden, entries)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    let mut entries = Vec::new();
+    recurse(root, 0, show_hidden, &mut entries)?;
+    Ok(entries)
+}

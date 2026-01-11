@@ -188,13 +188,19 @@ impl App {
     }
 
     pub fn expand_all(&mut self) -> anyhow::Result<()> {
-        for entry in &mut self.entries {
-            if entry.is_dir() {
-                entry.is_expanded = true;
-            }
+        self.entries = crate::fs::build_tree_fully_expanded(&self.root_path, self.show_hidden)?;
+
+        // Ensure cursor is within bounds
+        if self.cursor >= self.entries.len() {
+            self.cursor = self.entries.len().saturating_sub(1);
         }
-        self.refresh()?;
-        self.set_status("Expanded all directories");
+
+        let status = if self.entries.len() >= 5000 {
+            format!("Expanded all (limited to {} entries)", self.entries.len())
+        } else {
+            format!("Expanded all ({} entries)", self.entries.len())
+        };
+        self.set_status(status);
         Ok(())
     }
 

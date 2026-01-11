@@ -1,13 +1,18 @@
 [package]
-name = "grove"
+name = "grove-tui"
 version = "0.1.0"
 description = "A fast, minimal terminal file explorer with Vim-style navigation"
 authors = ["Jose Miguel Hernandez"]
 repository = "https://github.com/ixjosemi/grove"
 license = "MIT"
+readme = "README.md"
 keywords = ["terminal", "file-manager", "tui", "cli", "vim"]
 categories = ["command-line-utilities"]
 edition = "2021"
+
+[[bin]]
+name = "grove"
+path = "src/main.rs"
 
 [dependencies]
 ratatui = "0.29"
