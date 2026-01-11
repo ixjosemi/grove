@@ -1,7 +1,7 @@
-# filetree
+# grove
 
 <p align="center">
-  <img src="assets/header.png" alt="filetree header" width="100%">
+  <img src="assets/header.png" alt="grove header" width="100%">
 </p>
 
 A fast, minimal terminal file explorer with Vim-style navigation and Nerd Font icons.
@@ -26,12 +26,12 @@ A fast, minimal terminal file explorer with Vim-style navigation and Nerd Font i
 
 ```bash
 # Clone the repository
-git clone https://github.com/ixjosemi/filetree.git
-cd filetree
+git clone https://github.com/ixjosemi/grove.git
+cd grove
 
 # Build and install
 cargo build --release
-cp target/release/filetree ~/.local/bin/ft
+cp target/release/grove ~/.local/bin/grove
 ```
 
 ### Requirements
@@ -43,11 +43,11 @@ cp target/release/filetree ~/.local/bin/ft
 
 ```bash
 # Open current directory
-ft
+grove
 
 # Open specific directory
-ft ~/projects
-ft /etc
+grove ~/projects
+grove /etc
 ```
 
 ## Keybindings
@@ -100,7 +100,7 @@ ft /etc
 
 ## Configuration
 
-filetree uses your system's `$EDITOR` environment variable to open files. If not set, it defaults to `vim`.
+grove uses your system's `$EDITOR` environment variable to open files. If not set, it defaults to `vim`.
 
 ```bash
 # Set your preferred editor

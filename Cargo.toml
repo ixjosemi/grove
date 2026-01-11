@@ -1,6 +1,12 @@
 [package]
-name = "filetree"
+name = "grove"
 version = "0.1.0"
+description = "A fast, minimal terminal file explorer with Vim-style navigation"
+authors = ["Jose Miguel Hernandez"]
+repository = "https://github.com/ixjosemi/grove"
+license = "MIT"
+keywords = ["terminal", "file-manager", "tui", "cli", "vim"]
+categories = ["command-line-utilities"]
 edition = "2021"
 
 [dependencies]
@@ -10,6 +16,7 @@ tokio = { version = "1", features = ["full"] }
 ignore = "0.4"
 dirs = "5"
 anyhow = "1"
+notify = "8.2"
 
 [profile.release]
 lto = true

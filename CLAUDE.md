@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-filetree is a terminal file explorer (TUI) written in Rust. It provides Vim-style navigation, file operations, and Nerd Font icons.
+grove is a terminal file explorer (TUI) written in Rust. It provides Vim-style navigation, file operations, and Nerd Font icons.
 
 ## Architecture
 
@@ -91,9 +91,9 @@ cargo run --release      # Run release
 
 Currently no automated tests. Manual testing:
 ```bash
-ft                    # Test in current directory
-ft /tmp               # Test in /tmp
-ft ~                  # Test in home directory
+grove                 # Test in current directory
+grove /tmp            # Test in /tmp
+grove ~               # Test in home directory
 ```
 
 ## Dependencies

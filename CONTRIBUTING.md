@@ -1,6 +1,6 @@
-# Contributing to filetree
+# Contributing to grove
 
-Thank you for your interest in contributing to filetree! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to grove! This document provides guidelines and information for contributors.
 
 ## Getting Started
 
@@ -14,8 +14,8 @@ Thank you for your interest in contributing to filetree! This document provides 
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/YOUR_USERNAME/filetree.git
-cd filetree
+git clone https://github.com/YOUR_USERNAME/grove.git
+cd grove
 
 # Build the project
 cargo build
@@ -30,7 +30,7 @@ cargo run
 
 Before submitting a bug report:
 
-1. Check if the issue already exists in [GitHub Issues](https://github.com/ixjosemi/filetree/issues)
+1. Check if the issue already exists in [GitHub Issues](https://github.com/ixjosemi/grove/issues)
 2. Try to reproduce with the latest version
 
 When submitting a bug report, include:
