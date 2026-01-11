@@ -1,7 +1,9 @@
 mod app;
 mod fs;
 mod icons;
+mod preview;
 mod ui;
+mod watcher;
 
 use app::App;
 use crossterm::{
@@ -24,7 +26,14 @@ fn main() -> anyhow::Result<()> {
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| ".".into()));
 
-    let mut app = App::new(root_path);
+    let mut app = App::new(root_path.clone());
+
+    // Start file watcher
+    if let Ok((_watcher, rx)) = watcher::start_watcher(&root_path) {
+        app.watcher_rx = Some(rx);
+        app.watcher_active = true;
+    }
+
     app.refresh()?;
 
     let res = run_app(&mut terminal, &mut app);
@@ -49,6 +58,10 @@ fn run_app(
     app: &mut App,
 ) -> anyhow::Result<()> {
     loop {
+        // Check for filesystem changes
+        app.check_watcher();
+        app.cleanup_old_changes();
+
         terminal.draw(|f| ui::draw(f, app))?;
 
         if event::poll(std::time::Duration::from_millis(100))? {
@@ -89,8 +102,29 @@ fn handle_key(app: &mut App, key: KeyCode, _modifiers: KeyModifiers) -> anyhow::
 }
 
 fn handle_normal_mode(app: &mut App, key: KeyCode) -> anyhow::Result<()> {
+    // Handle preview-specific keys first
+    if app.show_preview {
+        match key {
+            KeyCode::Esc | KeyCode::Char(' ') => {
+                app.show_preview = false;
+                app.preview_scroll = 0;
+                return Ok(());
+            }
+            KeyCode::PageUp => {
+                app.scroll_preview_up();
+                return Ok(());
+            }
+            KeyCode::PageDown => {
+                app.scroll_preview_down();
+                return Ok(());
+            }
+            _ => {}
+        }
+    }
+
     match key {
         KeyCode::Char('q') => app.should_quit = true,
+        KeyCode::Char(' ') => app.toggle_preview(),
         KeyCode::Char('j') | KeyCode::Down => app.move_cursor_down(),
         KeyCode::Char('k') | KeyCode::Up => app.move_cursor_up(),
         KeyCode::Char('h') | KeyCode::Left => app.collapse_or_parent()?,

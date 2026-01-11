@@ -1,5 +1,9 @@
 use crate::fs::FileEntry;
-use std::path::PathBuf;
+use crate::preview::PreviewData;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::mpsc::Receiver;
+use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AppMode {
@@ -31,6 +35,8 @@ pub struct ClipboardEntry {
     pub is_cut: bool,
 }
 
+const RECENT_CHANGE_DURATION: Duration = Duration::from_secs(5);
+
 pub struct App {
     pub entries: Vec<FileEntry>,
     pub cursor: usize,
@@ -42,10 +48,18 @@ pub struct App {
     pub search_results: Vec<usize>,
     pub search_index: usize,
     pub clipboard: Option<ClipboardEntry>,
-    pub status_message: Option<(String, std::time::Instant)>,
+    pub status_message: Option<(String, Instant)>,
     pub should_quit: bool,
     pub pending_editor_file: Option<PathBuf>,
-    pub last_click: Option<(std::time::Instant, usize)>,
+    pub last_click: Option<(Instant, usize)>,
+    // Live file monitoring
+    pub watcher_rx: Option<Receiver<PathBuf>>,
+    pub recent_changes: HashMap<PathBuf, Instant>,
+    pub watcher_active: bool,
+    // Preview
+    pub preview_cache: HashMap<PathBuf, PreviewData>,
+    pub show_preview: bool,
+    pub preview_scroll: usize,
 }
 
 impl App {
@@ -65,6 +79,12 @@ impl App {
             should_quit: false,
             pending_editor_file: None,
             last_click: None,
+            watcher_rx: None,
+            recent_changes: HashMap::new(),
+            watcher_active: false,
+            preview_cache: HashMap::new(),
+            show_preview: false,
+            preview_scroll: 0,
         }
     }
 
@@ -187,5 +207,65 @@ impl App {
         self.refresh()?;
         self.set_status("Collapsed all directories");
         Ok(())
+    }
+
+    // Watcher methods
+    pub fn check_watcher(&mut self) {
+        if let Some(rx) = &self.watcher_rx {
+            // Non-blocking: drain all pending events
+            while let Ok(path) = rx.try_recv() {
+                self.recent_changes.insert(path.clone(), Instant::now());
+                // Invalidate preview cache for this path
+                self.preview_cache.remove(&path);
+            }
+        }
+    }
+
+    pub fn cleanup_old_changes(&mut self) {
+        self.recent_changes
+            .retain(|_, instant| instant.elapsed() < RECENT_CHANGE_DURATION);
+    }
+
+    pub fn is_recently_changed(&self, path: &Path) -> bool {
+        self.recent_changes
+            .get(path)
+            .map(|instant| instant.elapsed() < RECENT_CHANGE_DURATION)
+            .unwrap_or(false)
+    }
+
+    // Preview methods
+    pub fn get_cached_preview(&self) -> Option<&PreviewData> {
+        self.current_entry()
+            .and_then(|entry| self.preview_cache.get(&entry.path))
+    }
+
+    pub fn toggle_preview(&mut self) {
+        if self.show_preview {
+            self.show_preview = false;
+            self.preview_scroll = 0;
+        } else {
+            self.show_preview = true;
+            self.preview_scroll = 0;
+            self.generate_current_preview();
+        }
+    }
+
+    pub fn generate_current_preview(&mut self) {
+        if let Some(entry) = self.current_entry() {
+            let path = entry.path.clone();
+            if !self.preview_cache.contains_key(&path) {
+                if let Ok(preview) = crate::preview::generate_preview(&path) {
+                    self.preview_cache.insert(path, preview);
+                }
+            }
+        }
+    }
+
+    pub fn scroll_preview_up(&mut self) {
+        self.preview_scroll = self.preview_scroll.saturating_sub(5);
+    }
+
+    pub fn scroll_preview_down(&mut self) {
+        self.preview_scroll = self.preview_scroll.saturating_add(5);
     }
 }

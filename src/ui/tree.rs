@@ -36,11 +36,14 @@ fn render_tree(frame: &mut Frame, app: &App, area: Rect) {
             let indent = "  ".repeat(entry.depth);
             let icon = get_icon(&entry.name, entry.is_dir(), entry.is_expanded);
             let name = &entry.name;
+            let is_changed = app.is_recently_changed(&entry.path);
 
             let style = if i == app.cursor {
                 Style::default()
                     .bg(Color::DarkGray)
                     .add_modifier(Modifier::BOLD)
+            } else if is_changed {
+                Style::default().fg(Color::Yellow)
             } else if entry.is_dir() {
                 Style::default().fg(Color::Blue)
             } else if entry.is_executable {
@@ -53,12 +56,17 @@ fn render_tree(frame: &mut Frame, app: &App, area: Rect) {
                 Style::default()
             };
 
-            let line = Line::from(vec![
+            let mut spans = vec![
                 Span::raw(indent),
                 Span::styled(format!("{icon}{name}"), style),
-            ]);
+            ];
 
-            ListItem::new(line)
+            // Add change indicator
+            if is_changed {
+                spans.push(Span::styled(" *", Style::default().fg(Color::Yellow)));
+            }
+
+            ListItem::new(Line::from(spans))
         })
         .collect();
 
@@ -117,16 +125,18 @@ fn render_input_or_status(frame: &mut Frame, app: &App, area: Rect) {
 fn render_help_bar(frame: &mut Frame, app: &App, area: Rect) {
     let width = area.width as usize;
 
-    let help_text = match &app.mode {
+    let base_help = match &app.mode {
         AppMode::Normal => {
-            if width >= 120 {
-                "[a]dd [A]dir [r]en [d]el [y]ank [x]cut [p]aste [O]pen [/]search [E]xpand [W]rap [H]idden [R]efresh [?]help [q]uit"
+            if app.show_preview {
+                "[Space/Esc]close [PgUp/PgDn]scroll"
+            } else if width >= 120 {
+                "[Space]preview [a]dd [A]dir [r]en [d]el [y]ank [x]cut [p]aste [O]pen [/]search [E]xpand [W]rap [H]idden [R]efresh [?]help [q]uit"
             } else if width >= 95 {
-                "[a]dd [A]dir [r]en [d]el [y/x/p]clip [O]pen [/] [E]xpand [W]rap [H] [R] [?] [q]"
+                "[Space]preview [a]dd [A]dir [r]en [d]el [y/x/p]clip [O]pen [/] [E]xpand [W]rap [H] [R] [?] [q]"
             } else if width >= 60 {
-                "a:add r:ren d:del y/x/p:clip O:open /:search E/W:all ?:help q:quit"
+                "Space:preview a:add r:ren d:del y/x/p:clip /:search ?:help q:quit"
             } else {
-                "?:help q:quit"
+                "Space:preview ?:help q:quit"
             }
         }
         AppMode::Search => {
@@ -139,6 +149,13 @@ fn render_help_bar(frame: &mut Frame, app: &App, area: Rect) {
         AppMode::Input(_) => "[Enter]confirm [Esc]cancel",
         AppMode::Confirm(_) => "[y]es [n]o",
         AppMode::Help => "[Esc]close [q]uit",
+    };
+
+    // Add Live indicator if watcher is active
+    let help_text = if app.watcher_active && matches!(app.mode, AppMode::Normal) && !app.show_preview {
+        format!("{} |Live|", base_help)
+    } else {
+        base_help.to_string()
     };
 
     let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));
@@ -167,6 +184,10 @@ pub fn render_help_overlay(frame: &mut Frame) {
         Line::from("  x         Cut"),
         Line::from("  p         Paste"),
         Line::from("  O         Open in file manager"),
+        Line::from(""),
+        Line::from("Preview").style(Style::default().add_modifier(Modifier::BOLD)),
+        Line::from("  Space     Toggle preview"),
+        Line::from("  PgUp/PgDn Scroll preview"),
         Line::from(""),
         Line::from("Other").style(Style::default().add_modifier(Modifier::BOLD)),
         Line::from("  /         Search"),
